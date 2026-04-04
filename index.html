@@ -2690,7 +2690,7 @@ function sendAI() {
   .then(function(res){ return res.json(); })
   .then(function(data) {
     typingEl.remove();
-    var reply = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : 'Sorry, I had trouble responding. Please try again.';
+    var reply = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '⚠️ API Error: ' + JSON.stringify(data);
     appendMsg('bot', reply);
     aiHistory.push({ role: 'assistant', content: reply });
     document.getElementById('ai-send-btn').disabled = false;
@@ -3112,7 +3112,7 @@ sendAI = function() {
   .then(function(res){ return res.json(); })
   .then(function(data) {
     typingEl.remove();
-    var reply = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : 'Sorry, I had trouble responding. Please try again.';
+    var reply = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '⚠️ API Error: ' + JSON.stringify(data);
     appendMsg('bot', reply);
     aiHistory.push({ role: 'assistant', content: reply });
     document.getElementById('ai-send-btn').disabled = false;
@@ -3120,9 +3120,9 @@ sendAI = function() {
     // Speak the reply if mic was used
     if (isListening === false && recognition) speakText(reply);
   })
-  .catch(function() {
+  .catch(function(err) {
     typingEl.remove();
-    appendMsg('bot', '⚠️ Connection error. Please try again.');
+    appendMsg('bot', '⚠️ Error: ' + err.message);
     document.getElementById('ai-send-btn').disabled = false;
     document.getElementById('ai-send-btn').textContent = 'Send ↑';
   });
