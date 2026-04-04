@@ -648,6 +648,36 @@
   /* Prevent input clicks from triggering card modal */
   .sum-card input { position: relative; z-index: 2; }
   .sum-card input:focus { z-index: 3; }
+  /* ── Loans / Goals / Investments ──────────────────────────── */
+  .bnpl-row  { display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 36px; gap:8px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .gloan-row { display:grid; grid-template-columns: 2fr 1fr 1fr 1fr 36px; gap:8px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .stock-row { display:grid; grid-template-columns: 80px 1fr 80px 80px 80px 80px 36px; gap:8px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+  .bnpl-row:last-child, .gloan-row:last-child, .stock-row:last-child { border-bottom:none; }
+
+  .loan-input, .goal-input, .stock-input {
+    background:none; border:none; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text); outline:none; width:100%;
+  }
+  .loan-input:focus, .goal-input:focus, .stock-input:focus { color:var(--accent); }
+
+  .loan-num, .stock-num {
+    background:none; border:none; font-family:'DM Mono',monospace; font-size:13px; color:var(--text); text-align:right; outline:none; width:100%; -moz-appearance:textfield;
+  }
+  .loan-num::-webkit-outer-spin-button, .loan-num::-webkit-inner-spin-button,
+  .stock-num::-webkit-outer-spin-button, .stock-num::-webkit-inner-spin-button { -webkit-appearance:none; }
+  .loan-num:focus, .stock-num:focus { color:var(--accent); }
+
+  .goal-block { margin-bottom:16px; }
+  .goal-block:last-child { margin-bottom:0; }
+  .goal-bar-track { height:8px; background:var(--border); border-radius:99px; overflow:hidden; margin:6px 0 4px; }
+  .goal-bar-fill { height:100%; border-radius:99px; transition:width 0.6s ease; }
+
+  .stock-pl { font-family:'DM Mono',monospace; font-size:12px; font-weight:600; text-align:right; }
+
+  @media (max-width:680px) {
+    .bnpl-row, .gloan-row { grid-template-columns: 1fr 80px 36px; }
+    .stock-row { grid-template-columns: 55px 1fr 60px 60px 36px; }
+  }
+
   .ai-chip {
     background: rgba(255,255,255,0.05);
     border: 1px solid var(--border);
@@ -1237,6 +1267,106 @@
       <span></span>
     </div>
     <div id="sub-rows"></div>
+  </div>
+
+  <!-- AFFIRM / BNPL LOANS -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;animation:fadeUp 0.4s 0.33s ease both;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">🛍️ Affirm / BNPL Loans</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">Total: <strong id="bnplTotal" style="color:#e07b39;">$0</strong></span>
+        <button onclick="addBNPL()" style="background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">＋ Add</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 36px;gap:10px;padding:0 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">Name</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;">Balance</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;">Monthly</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;">Due Date</span>
+      <span></span>
+    </div>
+    <div id="bnpl-rows"></div>
+  </div>
+
+  <!-- GENERAL LOANS -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;animation:fadeUp 0.4s 0.34s ease both;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">🏦 General Loans</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">Total: <strong id="gloansTotal" style="color:#c0392b;">$0</strong></span>
+        <button onclick="addGLoan()" style="background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">＋ Add</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 36px;gap:10px;padding:0 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">Name</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;">Balance</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;">Rate %</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;">Monthly</span>
+      <span></span>
+    </div>
+    <div id="gloan-rows"></div>
+  </div>
+
+  <!-- SHORT TERM GOALS -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;animation:fadeUp 0.4s 0.35s ease both;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">🎯 Short Term Goals <span style="color:var(--muted);font-weight:400;">(under 12 months)</span></div>
+      <button onclick="addGoal('short')" style="background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">＋ Add Goal</button>
+    </div>
+    <div id="short-goal-rows"></div>
+  </div>
+
+  <!-- LONG TERM GOALS -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;animation:fadeUp 0.4s 0.36s ease both;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">🌟 Long Term Goals <span style="color:var(--muted);font-weight:400;">(1+ years)</span></div>
+      <button onclick="addGoal('long')" style="background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">＋ Add Goal</button>
+    </div>
+    <div id="long-goal-rows"></div>
+  </div>
+
+  <!-- INVESTMENT PORTFOLIO -->
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;animation:fadeUp 0.4s 0.37s ease both;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">📈 Investment Portfolio</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">Total: <strong id="portfolioTotal" style="color:#3dd6a3;">$0</strong></span>
+        <button onclick="refreshPrices()" id="refresh-btn" style="background:rgba(61,214,163,0.1);border:1px solid rgba(61,214,163,0.2);color:var(--accent2);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;transition:background 0.15s;">↻ Refresh</button>
+        <button onclick="addStock()" style="background:none;border:none;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">＋ Add</button>
+      </div>
+    </div>
+    <!-- Finnhub API Key -->
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 0;margin-bottom:12px;border-bottom:1px solid var(--border);">
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#3dd6a3);white-space:nowrap;">📊 Finnhub Key</span>
+      <input id="finnhub-key-input" type="password" placeholder="Paste free Finnhub API key..." style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:6px 10px;border-radius:6px;outline:none;" />
+      <button onclick="saveFinnhubKey()" style="background:rgba(61,214,163,0.15);border:1px solid rgba(61,214,163,0.3);color:var(--accent2);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;">Save</button>
+    </div>
+    <!-- Portfolio summary bars -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:12px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Cost Basis</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);" id="costBasis">$0</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:12px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Market Value</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:#3dd6a3;" id="marketValue">$0</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:12px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">30-Day P&L</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;" id="thirtyDayPL">$0</div>
+      </div>
+    </div>
+    <!-- Stock rows header -->
+    <div style="display:grid;grid-template-columns:80px 1fr 80px 80px 80px 80px 36px;gap:8px;padding:0 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">Ticker</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">Name</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;">Shares</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;">Cost</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;">Price</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:right;">P&L</span>
+      <span></span>
+    </div>
+    <div id="stock-rows"></div>
   </div>
 
   <!-- AI Money Coach Panel -->
@@ -1949,7 +2079,8 @@ updateMonth = function() {
   if (selected === currentMonth) return;
 
   // Save current month first
-  saveBanks(); saveSpend(); saveSubs(); saveMonth(currentMonth);
+  saveBanks(); saveSpend(); saveSubs(); saveBNPL(); saveGLoans(); saveGoals('short'); saveGoals('long');
+  saveMonth(currentMonth);
 
   // Check if destination month already has data
   var existingData = localStorage.getItem(storageKey(selected));
@@ -1960,6 +2091,9 @@ updateMonth = function() {
     loadBanks(currentMonth);
     loadSpend(currentMonth);
     loadSubs(currentMonth);
+    loadBNPL(currentMonth);
+    loadGLoans(currentMonth);
+    loadGoals(currentMonth);
     showToast('Switched to ' + currentMonth);
     return;
   }
@@ -2129,6 +2263,9 @@ function confirmRollover() {
   loadBanks(currentMonth);
   loadSpend(currentMonth);
   loadSubs(currentMonth);
+  loadBNPL(currentMonth);
+  loadGLoans(currentMonth);
+  loadGoals(currentMonth);
   updateNotifBadge();
   showToast('✅ Rolled over to ' + toMonth);
   _pendingMonth = null;
@@ -2155,6 +2292,10 @@ loadMonth(currentMonth);
 loadBanks(currentMonth);
 loadSpend(currentMonth);
 loadSubs(currentMonth);
+loadBNPL(currentMonth);
+loadGLoans(currentMonth);
+loadGoals(currentMonth);
+loadStocks();
 
 // ── Modal system ──────────────────────────────────────────────
 function openModal(type) {
@@ -2892,6 +3033,279 @@ function updateTUDisplay(score) {
 
 // Add loan to rollover card list
 var _origCardNames = { qs: 'Quicksilver', citi: 'Citi Double Cash', cap: 'Capital One', hd: 'Home Depot', loan: 'Loan' };
+// Add loan to rollover card list
+var _origCardNames = { qs: 'Quicksilver', citi: 'Citi Double Cash', cap: 'Capital One', hd: 'Home Depot', loan: 'Loan' };
+
+// ── BNPL / Affirm Loans ───────────────────────────────────────
+var bnplCounter = 0;
+function addBNPL(name, balance, total, monthly, dueDate, silent) {
+  name=name||''; balance=balance||0; total=total||0; monthly=monthly||0; dueDate=dueDate||''; silent=silent||false;
+  var id='bnpl'+(++bnplCounter);
+  var cont=document.getElementById('bnpl-rows');
+  var pct=total>0?Math.min(100,Math.round(((total-balance)/total)*100)):0;
+  var barColor=pct>75?'#3dd6a3':pct>40?'#f0a500':'#e07b39';
+  var div=document.createElement('div'); div.id=id;
+  div.innerHTML='<div class="bnpl-row">'+
+    '<input class="loan-input" type="text" value="'+name.replace(/"/g,'&quot;')+'" placeholder="Loan name..." oninput="saveBNPL()" />'+
+    '<input class="loan-num" type="number" value="'+balance+'" min="0" step="0.01" placeholder="Balance" oninput="recalcBNPL();saveBNPL()" />'+
+    '<input class="loan-num" type="number" value="'+monthly+'" min="0" step="0.01" placeholder="Monthly" oninput="saveBNPL()" />'+
+    '<input type="date" value="'+dueDate+'" style="background:none;border:none;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;outline:none;width:100%;text-align:right;" oninput="saveBNPL()" />'+
+    '<button class="delete-btn" onclick="removeBNPL(\''+id+'\')">×</button>'+
+  '</div>'+
+  '<div style="padding:2px 0 8px;">'+
+    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:\'DM Mono\',monospace;margin-bottom:3px;"><span>Payoff</span><span id="'+id+'-pct">'+pct+'%</span></div>'+
+    '<div class="goal-bar-track"><div class="goal-bar-fill" id="'+id+'-bar" style="width:'+pct+'%;background:'+barColor+';"></div></div>'+
+  '</div>';
+  cont.appendChild(div);
+  if(!silent) saveBNPL();
+  recalcBNPL();
+}
+function removeBNPL(id){document.getElementById(id)?.remove();saveBNPL();recalcBNPL();}
+function recalcBNPL(){
+  var total=0;
+  document.getElementById('bnpl-rows').querySelectorAll('[id^="bnpl"]').forEach(function(div){
+    var inp=div.querySelectorAll('.loan-num')[0]; if(inp) total+=parseFloat(inp.value)||0;
+  });
+  document.getElementById('bnplTotal').textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2});
+}
+function saveBNPL(){
+  var rows=[];
+  document.getElementById('bnpl-rows').querySelectorAll('[id^="bnpl"]').forEach(function(div){
+    var i=div.querySelectorAll('input'),d=div.querySelector('input[type="date"]');
+    if(i.length>=3) rows.push({name:i[0].value,balance:parseFloat(i[1].value)||0,monthly:parseFloat(i[2].value)||0,dueDate:d?d.value:''});
+  });
+  localStorage.setItem(storageKey(currentMonth)+'_bnpl',JSON.stringify(rows));
+}
+function loadBNPL(month){
+  document.getElementById('bnpl-rows').innerHTML=''; bnplCounter=0;
+  var raw=localStorage.getItem(storageKey(month)+'_bnpl');
+  if(raw){JSON.parse(raw).forEach(function(r){addBNPL(r.name,r.balance,r.total||0,r.monthly,r.dueDate,true);});}
+  recalcBNPL();
+}
+
+// ── General Loans ─────────────────────────────────────────────
+var gloanCounter=0;
+function addGLoan(name,balance,rate,monthly,silent){
+  name=name||''; balance=balance||0; rate=rate||0; monthly=monthly||0; silent=silent||false;
+  var id='gl'+(++gloanCounter);
+  var cont=document.getElementById('gloan-rows');
+  var div=document.createElement('div'); div.id=id;
+  div.innerHTML='<div class="gloan-row">'+
+    '<input class="loan-input" type="text" value="'+name.replace(/"/g,'&quot;')+'" placeholder="Loan name..." oninput="saveGLoans()" />'+
+    '<input class="loan-num" type="number" value="'+balance+'" min="0" step="0.01" placeholder="Balance" oninput="recalcGLoans();saveGLoans()" />'+
+    '<input class="loan-num" type="number" value="'+rate+'" min="0" step="0.01" placeholder="Rate %" oninput="saveGLoans()" />'+
+    '<input class="loan-num" type="number" value="'+monthly+'" min="0" step="0.01" placeholder="Monthly" oninput="saveGLoans()" />'+
+    '<button class="delete-btn" onclick="removeGLoan(\''+id+'\')">×</button>'+
+  '</div>';
+  cont.appendChild(div);
+  if(!silent) saveGLoans();
+  recalcGLoans();
+}
+function removeGLoan(id){document.getElementById(id)?.remove();saveGLoans();recalcGLoans();}
+function recalcGLoans(){
+  var total=0;
+  document.getElementById('gloan-rows').querySelectorAll('[id^="gl"]').forEach(function(div){
+    var inp=div.querySelectorAll('.loan-num')[0]; if(inp) total+=parseFloat(inp.value)||0;
+  });
+  document.getElementById('gloansTotal').textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2});
+}
+function saveGLoans(){
+  var rows=[];
+  document.getElementById('gloan-rows').querySelectorAll('[id^="gl"]').forEach(function(div){
+    var i=div.querySelectorAll('input');
+    if(i.length>=4) rows.push({name:i[0].value,balance:parseFloat(i[1].value)||0,rate:parseFloat(i[2].value)||0,monthly:parseFloat(i[3].value)||0});
+  });
+  localStorage.setItem(storageKey(currentMonth)+'_gloans',JSON.stringify(rows));
+}
+function loadGLoans(month){
+  document.getElementById('gloan-rows').innerHTML=''; gloanCounter=0;
+  var raw=localStorage.getItem(storageKey(month)+'_gloans');
+  if(raw){JSON.parse(raw).forEach(function(r){addGLoan(r.name,r.balance,r.rate,r.monthly,true);});}
+  recalcGLoans();
+}
+
+// ── Goals ─────────────────────────────────────────────────────
+var goalCounter=0;
+function addGoal(type,name,target,saved,deadline,silent){
+  type=type||'short'; name=name||''; target=target||0; saved=saved||0; deadline=deadline||''; silent=silent||false;
+  var id='goal'+(++goalCounter);
+  var cont=document.getElementById(type+'-goal-rows');
+  if(!cont) return;
+  var pct=target>0?Math.min(100,Math.round((saved/target)*100)):0;
+  var color=type==='short'?'#f0a500':'#b97cf7';
+  var barColor=pct>=100?'#3dd6a3':pct>60?color:'rgba(255,255,255,0.15)';
+  var div=document.createElement('div'); div.id=id; div.className='goal-block';
+  div.innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 100px 100px 110px 36px;gap:8px;align-items:center;margin-bottom:4px;">'+
+      '<input class="goal-input" type="text" value="'+name.replace(/"/g,'&quot;')+'" placeholder="Goal name..." oninput="saveGoals(\''+type+'\')" />'+
+      '<input class="loan-num" type="number" value="'+target+'" min="0" step="1" placeholder="Target $" oninput="updateGoalBar(\''+id+'\',\''+type+'\')" style="text-align:right;" />'+
+      '<input class="loan-num" type="number" value="'+saved+'" min="0" step="1" placeholder="Saved $" oninput="updateGoalBar(\''+id+'\',\''+type+'\')" style="text-align:right;" />'+
+      '<input type="date" value="'+deadline+'" style="background:none;border:none;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:11px;outline:none;width:100%;text-align:right;" oninput="saveGoals(\''+type+'\')" />'+
+      '<button class="delete-btn" onclick="removeGoal(\''+id+'\',\''+type+'\')">×</button>'+
+    '</div>'+
+    '<div class="goal-bar-track"><div class="goal-bar-fill" id="'+id+'-bar" style="width:'+pct+'%;background:'+barColor+';"></div></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:\'DM Mono\',monospace;margin-bottom:6px;">'+
+      '<span>$<span id="'+id+'-saved">'+saved.toLocaleString('en-US')+'</span> of $<span id="'+id+'-target">'+target.toLocaleString('en-US')+'</span></span>'+
+      '<span id="'+id+'-pct" style="color:'+color+';">'+pct+'%</span>'+
+    '</div>'+
+    '<button onclick="openGoalTxn(\''+id+'\',\''+type+'\')" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:\'DM Sans\',sans-serif;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;transition:color 0.15s;" onmouseover="this.style.color=\'var(--accent)\'" onmouseout="this.style.color=\'var(--muted)\'">＋ Deposit / Withdraw</button>';
+  cont.appendChild(div);
+  if(!silent) saveGoals(type);
+}
+function updateGoalBar(id,type){
+  var div=document.getElementById(id); if(!div) return;
+  var nums=div.querySelectorAll('.loan-num');
+  var target=parseFloat(nums[0]?.value)||0, saved=parseFloat(nums[1]?.value)||0;
+  var pct=target>0?Math.min(100,Math.round((saved/target)*100)):0;
+  var color=type==='short'?'#f0a500':'#b97cf7';
+  var bar=document.getElementById(id+'-bar');
+  if(bar){bar.style.width=pct+'%';bar.style.background=pct>=100?'#3dd6a3':pct>60?color:'rgba(255,255,255,0.15)';}
+  var pe=document.getElementById(id+'-pct'); if(pe) pe.textContent=pct+'%';
+  var se=document.getElementById(id+'-saved'); if(se) se.textContent=saved.toLocaleString('en-US');
+  var te=document.getElementById(id+'-target'); if(te) te.textContent=target.toLocaleString('en-US');
+  saveGoals(type);
+}
+function openGoalTxn(id,type){
+  var div=document.getElementById(id); if(!div) return;
+  var name=div.querySelector('.goal-input')?.value||'Goal';
+  var amtStr=prompt('Enter amount:\n+ for deposit (e.g. 100)\n- for withdrawal (e.g. -50)');
+  if(amtStr===null) return;
+  var amount=parseFloat(amtStr)||0; if(amount===0) return;
+  var nums=div.querySelectorAll('.loan-num');
+  nums[1].value=Math.max(0,(parseFloat(nums[1].value)||0)+amount).toFixed(0);
+  updateGoalBar(id,type);
+  var txns=JSON.parse(localStorage.getItem('goal_txns_'+id)||'[]');
+  txns.push({date:new Date().toISOString().split('T')[0],amount:amount,desc:amount>0?'Deposit':'Withdrawal'});
+  localStorage.setItem('goal_txns_'+id,JSON.stringify(txns));
+  showToast((amount>0?'💰 +$'+amount:'💸 -$'+Math.abs(amount))+' — '+name);
+}
+function removeGoal(id,type){document.getElementById(id)?.remove();saveGoals(type);}
+function saveGoals(type){
+  var rows=[];
+  var cont=document.getElementById(type+'-goal-rows');
+  if(!cont) return;
+  cont.querySelectorAll('.goal-block').forEach(function(div){
+    var ne=div.querySelector('.goal-input'), nums=div.querySelectorAll('.loan-num'), de=div.querySelector('input[type="date"]');
+    rows.push({name:ne?ne.value:'',target:parseFloat(nums[0]?.value)||0,saved:parseFloat(nums[1]?.value)||0,deadline:de?de.value:''});
+  });
+  localStorage.setItem(storageKey(currentMonth)+'_goals_'+type,JSON.stringify(rows));
+}
+function loadGoals(month){
+  ['short','long'].forEach(function(type){
+    var cont=document.getElementById(type+'-goal-rows');
+    if(cont) cont.innerHTML='';
+    var raw=localStorage.getItem(storageKey(month)+'_goals_'+type);
+    if(raw){JSON.parse(raw).forEach(function(r){addGoal(type,r.name,r.target,r.saved,r.deadline,true);});}
+  });
+}
+
+// ── Investments ───────────────────────────────────────────────
+var stockCounter=0, stockPrices={}, stock30Day={};
+function saveFinnhubKey(){
+  var key=document.getElementById('finnhub-key-input').value.trim();
+  if(!key){showToast('Paste your Finnhub API key first');return;}
+  localStorage.setItem('finnhub_api_key',key);
+  document.getElementById('finnhub-key-input').value='';
+  showToast('✅ Finnhub key saved! Click Refresh to load prices.');
+}
+function getFinnhubKey(){return localStorage.getItem('finnhub_api_key')||'';}
+function addStock(ticker,name,shares,cost,silent){
+  ticker=(ticker||'').toUpperCase(); name=name||''; shares=shares||0; cost=cost||0; silent=silent||false;
+  var id='stk'+(++stockCounter);
+  var cont=document.getElementById('stock-rows');
+  var div=document.createElement('div'); div.id=id;
+  div.innerHTML='<div class="stock-row">'+
+    '<input class="stock-input" type="text" value="'+ticker+'" placeholder="AAPL" style="font-weight:700;text-transform:uppercase;" oninput="saveStocks()" />'+
+    '<input class="stock-input" type="text" value="'+name.replace(/"/g,'&quot;')+'" placeholder="Company..." oninput="saveStocks()" />'+
+    '<input class="stock-num" type="number" value="'+shares+'" min="0" step="0.001" placeholder="0" oninput="updateStockPL(\''+id+'\');saveStocks()" />'+
+    '<input class="stock-num" type="number" value="'+cost+'" min="0" step="0.01" placeholder="0.00" oninput="updateStockPL(\''+id+'\');saveStocks()" />'+
+    '<div class="stock-pl" id="'+id+'-price" style="color:var(--muted);">—</div>'+
+    '<div class="stock-pl" id="'+id+'-pl" style="color:var(--muted);">—</div>'+
+    '<button class="delete-btn" onclick="removeStock(\''+id+'\')">×</button>'+
+  '</div>';
+  cont.appendChild(div);
+  if(!silent){saveStocks(); if(getFinnhubKey()) refreshPrices();}
+}
+function removeStock(id){document.getElementById(id)?.remove();saveStocks();updatePortfolioTotals();}
+function updateStockPL(id){
+  var div=document.getElementById(id); if(!div) return;
+  var ticker=div.querySelector('.stock-input').value.trim().toUpperCase();
+  var nums=div.querySelectorAll('.stock-num');
+  var shares=parseFloat(nums[0]?.value)||0, cost=parseFloat(nums[1]?.value)||0;
+  var price=stockPrices[ticker]||0;
+  if(price>0){
+    var mv=price*shares, pl=mv-(cost*shares);
+    var pe=document.getElementById(id+'-price'); if(pe) pe.textContent='$'+price.toFixed(2);
+    var ple=document.getElementById(id+'-pl');
+    if(ple){ple.textContent=(pl>=0?'+':'')+' $'+Math.abs(pl).toFixed(2);ple.style.color=pl>=0?'var(--income-col)':'var(--expense-col)';}
+  }
+  updatePortfolioTotals();
+}
+function updatePortfolioTotals(){
+  var tc=0,tm=0,tpl=0;
+  document.getElementById('stock-rows').querySelectorAll('[id^="stk"]').forEach(function(div){
+    var ticker=div.querySelector('.stock-input').value.trim().toUpperCase();
+    var nums=div.querySelectorAll('.stock-num');
+    var shares=parseFloat(nums[0]?.value)||0, cost=parseFloat(nums[1]?.value)||0;
+    var price=stockPrices[ticker]||0, p30=stock30Day[ticker]||price;
+    tc+=cost*shares; tm+=price*shares; tpl+=(price-p30)*shares;
+  });
+  document.getElementById('costBasis').textContent='$'+tc.toLocaleString('en-US',{minimumFractionDigits:2});
+  document.getElementById('marketValue').textContent='$'+tm.toLocaleString('en-US',{minimumFractionDigits:2});
+  var pe=document.getElementById('thirtyDayPL');
+  pe.textContent=(tpl>=0?'+':'')+' $'+Math.abs(tpl).toLocaleString('en-US',{minimumFractionDigits:2});
+  pe.style.color=tpl>=0?'var(--income-col)':'var(--expense-col)';
+  document.getElementById('portfolioTotal').textContent='$'+tm.toLocaleString('en-US',{minimumFractionDigits:2});
+}
+function refreshPrices(){
+  var key=getFinnhubKey();
+  if(!key){showToast('Add your free Finnhub API key first — finnhub.io');return;}
+  var btn=document.getElementById('refresh-btn');
+  if(btn){btn.textContent='↻ Loading...';btn.disabled=true;}
+  var tickers=[];
+  document.getElementById('stock-rows').querySelectorAll('[id^="stk"]').forEach(function(div){
+    var t=div.querySelector('.stock-input').value.trim().toUpperCase();
+    if(t&&tickers.indexOf(t)===-1) tickers.push(t);
+  });
+  if(tickers.length===0){if(btn){btn.textContent='↻ Refresh';btn.disabled=false;}return;}
+  var done=0;
+  tickers.forEach(function(ticker){
+    fetch('https://finnhub.io/api/v1/quote?symbol='+ticker+'&token='+key)
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.c){
+          stockPrices[ticker]=d.c;
+          // Get 30-day candle
+          var now=Math.floor(Date.now()/1000);
+          var from=now-(31*86400);
+          fetch('https://finnhub.io/api/v1/stock/candle?symbol='+ticker+'&resolution=D&from='+from+'&to='+now+'&token='+key)
+            .then(function(r2){return r2.json();})
+            .then(function(d2){
+              if(d2.c&&d2.c.length>0) stock30Day[ticker]=d2.c[0];
+              done++;
+              document.getElementById('stock-rows').querySelectorAll('[id^="stk"]').forEach(function(div){
+                if(div.querySelector('.stock-input').value.trim().toUpperCase()===ticker) updateStockPL(div.id);
+              });
+              if(done>=tickers.length){if(btn){btn.textContent='↻ Refresh';btn.disabled=false;}showToast('✅ Prices updated!');}
+            }).catch(function(){done++;if(done>=tickers.length&&btn){btn.textContent='↻ Refresh';btn.disabled=false;}});
+        } else { done++; if(done>=tickers.length&&btn){btn.textContent='↻ Refresh';btn.disabled=false;} }
+      }).catch(function(){done++;if(done>=tickers.length&&btn){btn.textContent='↻ Refresh';btn.disabled=false;}});
+  });
+}
+function saveStocks(){
+  var rows=[];
+  document.getElementById('stock-rows').querySelectorAll('[id^="stk"]').forEach(function(div){
+    var st=div.querySelectorAll('.stock-input'), sn=div.querySelectorAll('.stock-num');
+    rows.push({ticker:st[0]?.value||'',name:st[1]?.value||'',shares:parseFloat(sn[0]?.value)||0,cost:parseFloat(sn[1]?.value)||0});
+  });
+  localStorage.setItem('portfolio_stocks',JSON.stringify(rows));
+}
+function loadStocks(){
+  document.getElementById('stock-rows').innerHTML=''; stockCounter=0;
+  var raw=localStorage.getItem('portfolio_stocks');
+  if(raw){JSON.parse(raw).forEach(function(r){addStock(r.ticker,r.name,r.shares,r.cost,true);});if(getFinnhubKey()) refreshPrices();}
+}
+
 function getApiKey() {
   return localStorage.getItem('anthropic_api_key') || '';
 }
