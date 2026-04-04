@@ -3453,7 +3453,7 @@ function refreshPrices(){
   if(tickers.length===0){if(btn){btn.textContent='↻ Refresh';btn.disabled=false;}return;}
   var done=0;
   tickers.forEach(function(ticker){
-    fetch('https://finnhub.io/api/v1/quote?symbol='+ticker+'&token='+key)
+    fetch('https://claud-budget-proxy.hiratani-m.workers.dev/finnhub/api/v1/quote?symbol='+ticker+'&token='+key)
       .then(function(r){return r.json();})
       .then(function(d){
         if(d.c){
@@ -3461,7 +3461,7 @@ function refreshPrices(){
           // Get 30-day candle
           var now=Math.floor(Date.now()/1000);
           var from=now-(31*86400);
-          fetch('https://finnhub.io/api/v1/stock/candle?symbol='+ticker+'&resolution=D&from='+from+'&to='+now+'&token='+key)
+          fetch('https://claud-budget-proxy.hiratani-m.workers.dev/finnhub/api/v1/stock/candle?symbol='+ticker+'&resolution=D&from='+from+'&to='+now+'&token='+key)
             .then(function(r2){return r2.json();})
             .then(function(d2){
               if(d2.c&&d2.c.length>0) stock30Day[ticker]=d2.c[0];
