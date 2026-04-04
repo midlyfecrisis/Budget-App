@@ -2344,11 +2344,24 @@ function openModal(type) {
     html += '<input id="txn-date" type="date" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);font-family:\'DM Mono\',monospace;font-size:12px;padding:8px 10px;border-radius:7px;outline:none;grid-column:1/-1;" />';
     html += '<input id="txn-desc" type="text" placeholder="Description..." style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:13px;padding:8px 10px;border-radius:7px;outline:none;grid-column:1/-1;" />';
     html += '<input id="txn-amount" type="number" placeholder="Amount" step="0.01" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);font-family:\'DM Mono\',monospace;font-size:13px;padding:8px 10px;border-radius:7px;outline:none;" />';
-    html += '<select id="txn-type" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);font-family:\'DM Sans\',sans-serif;font-size:13px;padding:8px 10px;border-radius:7px;outline:none;">';
+    html += '<select id="txn-type" onchange="toggleTransferTo()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);font-family:\'DM Sans\',sans-serif;font-size:13px;padding:8px 10px;border-radius:7px;outline:none;">';
     html += '<option value="deposit">💰 Deposit</option>';
     html += '<option value="withdrawal">💸 Withdrawal</option>';
+    html += '<option value="zelle_in">📲 Zelle In</option>';
+    html += '<option value="zelle_out">📲 Zelle Out</option>';
+    html += '<option value="transfer_out">🔄 Transfer Out</option>';
+    html += '<option value="transfer_in">🔄 Transfer In</option>';
     html += '</select>';
     html += '</div>';
+    // Transfer-to field (shown only for transfers)
+    html += '<div id="transfer-to-row" style="display:none;margin-bottom:8px;">';
+    html += '<select id="txn-transfer-to" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);font-family:\'DM Sans\',sans-serif;font-size:13px;padding:8px 10px;border-radius:7px;outline:none;width:100%;">';
+    // Show other accounts as transfer destinations
+    var allAccounts = { wfc: 'WF Checking', wfs: 'WF Savings', nsb: 'NSB Personal' };
+    Object.keys(allAccounts).forEach(function(k) {
+      if (k !== type) html += '<option value="' + k + '">' + allAccounts[k] + '</option>';
+    });
+    html += '</select></div>';
     html += '<button onclick="addBankTxn(\'' + type + '\')" style="background:linear-gradient(135deg,' + color + ',rgba(255,255,255,0.3));border:none;color:#000;font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;padding:9px;border-radius:7px;cursor:pointer;width:100%;">＋ Add Transaction</button>';
     html += '</div>';
 
@@ -2361,13 +2374,15 @@ function openModal(type) {
       // Show transactions newest first with running balance
       var sorted = txns.slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
       sorted.forEach(function(t) {
-        var isDeposit = t.type === 'deposit';
+        var isDeposit = t.type === 'deposit' || t.type === 'zelle_in' || t.type === 'transfer_in';
         var sign  = isDeposit ? '+' : '-';
         var tcolor = isDeposit ? 'var(--income-col)' : 'var(--expense-col)';
+        var typeLabels = { deposit: '💰 Deposit', withdrawal: '💸 Withdrawal', zelle_in: '📲 Zelle In', zelle_out: '📲 Zelle Out', transfer_out: '🔄 Transfer Out', transfer_in: '🔄 Transfer In' };
+        var typeLabel = typeLabels[t.type] || t.type;
         html += '<div class="modal-row">';
         html += '<div style="flex:1;">';
         html += '<div style="font-size:13px;color:var(--text);">' + t.desc + '</div>';
-        html += '<div style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">' + t.date + '</div>';
+        html += '<div style="font-size:11px;color:var(--muted);font-family:\'DM Mono\',monospace;">' + t.date + ' · ' + typeLabel + (t.transferTo ? ' → ' + {wfc:'WF Checking',wfs:'WF Savings',nsb:'NSB Personal'}[t.transferTo] : '') + '</div>';
         html += '</div>';
         html += '<div style="display:flex;align-items:center;gap:10px;">';
         html += '<span style="font-family:\'DM Mono\',monospace;font-size:13px;font-weight:600;color:' + tcolor + ';">' + sign + '$' + parseFloat(t.amount).toLocaleString('en-US', {minimumFractionDigits:2}) + '</span>';
@@ -2407,30 +2422,53 @@ function saveBankTxns(accountId, txns) {
   localStorage.setItem('bank_txns_' + accountId, JSON.stringify(txns));
 }
 
+function toggleTransferTo() {
+  var type = document.getElementById('txn-type') ? document.getElementById('txn-type').value : '';
+  var row  = document.getElementById('transfer-to-row');
+  if (row) row.style.display = (type === 'transfer_out' || type === 'transfer_in') ? 'block' : 'none';
+}
+
 function addBankTxn(accountId) {
-  var date   = document.getElementById('txn-date').value;
-  var desc   = document.getElementById('txn-desc').value.trim();
-  var amount = parseFloat(document.getElementById('txn-amount').value);
-  var type   = document.getElementById('txn-type').value;
+  var date       = document.getElementById('txn-date').value;
+  var desc       = document.getElementById('txn-desc').value.trim();
+  var amount     = parseFloat(document.getElementById('txn-amount').value);
+  var type       = document.getElementById('txn-type').value;
+  var transferTo = document.getElementById('txn-transfer-to') ? document.getElementById('txn-transfer-to').value : null;
 
   if (!date || !desc || isNaN(amount) || amount <= 0) {
     showToast('Fill in all fields before adding'); return;
   }
 
+  // Save transaction
   var txns = getBankTxns(accountId);
-  txns.push({ id: Date.now(), date: date, desc: desc, amount: amount, type: type });
+  var txnObj = { id: Date.now(), date: date, desc: desc, amount: amount, type: type };
+  if (transferTo && (type === 'transfer_out' || type === 'transfer_in')) txnObj.transferTo = transferTo;
+  txns.push(txnObj);
   saveBankTxns(accountId, txns);
 
-  // Update the main balance card
+  // Update the balance on this account
   var balEl = document.getElementById(accountId + '-bal');
   var currentBal = parseFloat(balEl.value) || 0;
-  var newBal = type === 'deposit' ? currentBal + amount : currentBal - amount;
+  var isCredit = (type === 'deposit' || type === 'zelle_in' || type === 'transfer_in');
+  var newBal = isCredit ? currentBal + amount : currentBal - amount;
   balEl.value = newBal.toFixed(2);
-  saveBanks();
 
-  // Refresh modal
+  // If transfer out — also add transfer_in to destination account
+  if (type === 'transfer_out' && transferTo) {
+    var destTxns = getBankTxns(transferTo);
+    var accountNames = { wfc: 'WF Checking', wfs: 'WF Savings', nsb: 'NSB Personal' };
+    destTxns.push({ id: Date.now()+1, date: date, desc: 'Transfer from ' + accountNames[accountId], amount: amount, type: 'transfer_in' });
+    saveBankTxns(transferTo, destTxns);
+    var destBal = document.getElementById(transferTo + '-bal');
+    if (destBal) destBal.value = (parseFloat(destBal.value)||0 + amount).toFixed(2);
+    showToast('🔄 Transfer recorded on both accounts');
+  } else {
+    var typeLabels = { deposit:'💰 Deposit', withdrawal:'💸 Withdrawal', zelle_in:'📲 Zelle In', zelle_out:'📲 Zelle Out', transfer_out:'🔄 Transfer Out', transfer_in:'🔄 Transfer In' };
+    showToast((typeLabels[type]||type) + ' added');
+  }
+
+  saveBanks();
   openModal(accountId);
-  showToast((type === 'deposit' ? '💰 Deposit' : '💸 Withdrawal') + ' added');
 }
 
 function deleteBankTxn(accountId, id) {
@@ -2634,7 +2672,7 @@ function sendAI() {
     return;
   }
 
-  fetch('https://api.anthropic.com/v1/messages', {
+  fetch('https://corsproxy.io/?https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -3061,7 +3099,7 @@ sendAI = function() {
     return;
   }
 
-  fetch('https://api.anthropic.com/v1/messages', {
+  fetch('https://corsproxy.io/?https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
