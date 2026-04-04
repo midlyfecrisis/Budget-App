@@ -645,7 +645,9 @@
     /* Compact spend/sub headers */
     .spend-row, .sub-row { padding: 10px 0; gap: 6px; }
   }
-  /* ── AI Coach Panel ─────────────────────────────────────────── */
+  /* Prevent input clicks from triggering card modal */
+  .sum-card input { position: relative; z-index: 2; }
+  .sum-card input:focus { z-index: 3; }
   .ai-chip {
     background: rgba(255,255,255,0.05);
     border: 1px solid var(--border);
@@ -947,7 +949,7 @@
       <div class="sum-value" id="totalExpenses">$0</div>
     </div>
     <div class="sum-card balance" onclick="openModal('remaining')">
-      <div class="sum-label">Remaining</div>
+      <div class="sum-label">Available Funds</div>
       <div class="sum-value" id="totalBalance">$0</div>
     </div>
     <div class="sum-card emergency" onclick="openModal('emergency')">
@@ -963,7 +965,7 @@
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#d4a843;border-radius:12px 12px 0 0;"></div>
       <div class="sum-label">WF Checking</div>
       <div class="sum-value" style="color:#d4a843;display:flex;align-items:baseline;gap:2px;">
-        <span>$</span><input class="cc-balance-input" type="number" id="wfc-bal" value="0" min="0" step="1" oninput="saveBanks()" style="color:#d4a843;" />
+        <span>$</span><input class="cc-balance-input" type="number" onclick="event.stopPropagation()" id="wfc-bal" value="0" min="0" step="1" oninput="saveBanks()" style="color:#d4a843;" />
       </div>
       <div class="cc-limit-row"><span class="cc-limit-label">Wells Fargo Checking</span></div>
     </div>
@@ -972,7 +974,7 @@
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#c0392b;border-radius:12px 12px 0 0;"></div>
       <div class="sum-label">WF Savings</div>
       <div class="sum-value" style="color:#c0392b;display:flex;align-items:baseline;gap:2px;">
-        <span>$</span><input class="cc-balance-input" type="number" id="wfs-bal" value="0" min="0" step="1" oninput="saveBanks()" style="color:#c0392b;" />
+        <span>$</span><input class="cc-balance-input" type="number" onclick="event.stopPropagation()" id="wfs-bal" value="0" min="0" step="1" oninput="saveBanks()" style="color:#c0392b;" />
       </div>
       <div class="cc-limit-row"><span class="cc-limit-label">Wells Fargo Savings</span></div>
     </div>
@@ -981,7 +983,7 @@
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#b97cf7;border-radius:12px 12px 0 0;"></div>
       <div class="sum-label">NSB Personal</div>
       <div class="sum-value" style="color:#b97cf7;display:flex;align-items:baseline;gap:2px;">
-        <span>$</span><input class="cc-balance-input" type="number" id="nsb-bal" value="0" min="0" step="1" oninput="saveBanks()" style="color:#b97cf7;" />
+        <span>$</span><input class="cc-balance-input" type="number" onclick="event.stopPropagation()" id="nsb-bal" value="0" min="0" step="1" oninput="saveBanks()" style="color:#b97cf7;" />
       </div>
       <div class="cc-limit-row"><span class="cc-limit-label">Nevada State Bank</span></div>
     </div>
@@ -1007,45 +1009,45 @@
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#e05252;border-radius:12px 12px 0 0;"></div>
       <div class="sum-label">Quicksilver</div>
       <div class="sum-value" style="color:#e05252;display:flex;align-items:baseline;gap:2px;">
-        <span>$</span><input class="cc-balance-input" type="number" id="qs-bal" value="0" min="0" step="1" oninput="recalcDebt()" style="color:#e05252;" />
+        <span>$</span><input class="cc-balance-input" type="number" onclick="event.stopPropagation()" id="qs-bal" value="0" min="0" step="1" oninput="recalcDebt()" style="color:#e05252;" />
       </div>
-      <div class="cc-limit-row"><span class="cc-limit-label">Limit: $<input class="cc-limit-input" type="number" id="qs-lim" value="1500" min="1" oninput="recalcDebt()" /></span></div>
+      <div class="cc-limit-row"><span class="cc-limit-label">Limit: $<input class="cc-limit-input" type="number" onclick="event.stopPropagation()" id="qs-lim" value="1500" min="1" oninput="recalcDebt()" /></span></div>
     </div>
 
     <div class="sum-card" style="position:relative;overflow:hidden;" onclick="openModal('citi')">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#f0a500;border-radius:12px 12px 0 0;"></div>
       <div class="sum-label">Citi Double Cash</div>
       <div class="sum-value" style="color:#f0a500;display:flex;align-items:baseline;gap:2px;">
-        <span>$</span><input class="cc-balance-input" type="number" id="citi-bal" value="0" min="0" step="1" oninput="recalcDebt()" style="color:#f0a500;" />
+        <span>$</span><input class="cc-balance-input" type="number" onclick="event.stopPropagation()" id="citi-bal" value="0" min="0" step="1" oninput="recalcDebt()" style="color:#f0a500;" />
       </div>
-      <div class="cc-limit-row"><span class="cc-limit-label">Limit: $<input class="cc-limit-input" type="number" id="citi-lim" value="2000" min="1" oninput="recalcDebt()" /></span></div>
+      <div class="cc-limit-row"><span class="cc-limit-label">Limit: $<input class="cc-limit-input" type="number" onclick="event.stopPropagation()" id="citi-lim" value="2000" min="1" oninput="recalcDebt()" /></span></div>
     </div>
 
     <div class="sum-card" style="position:relative;overflow:hidden;" onclick="openModal('cap')">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#3dd6a3;border-radius:12px 12px 0 0;"></div>
       <div class="sum-label">Capital One</div>
       <div class="sum-value" style="color:#3dd6a3;display:flex;align-items:baseline;gap:2px;">
-        <span>$</span><input class="cc-balance-input" type="number" id="cap-bal" value="0" min="0" step="1" oninput="recalcDebt()" style="color:#3dd6a3;" />
+        <span>$</span><input class="cc-balance-input" type="number" onclick="event.stopPropagation()" id="cap-bal" value="0" min="0" step="1" oninput="recalcDebt()" style="color:#3dd6a3;" />
       </div>
-      <div class="cc-limit-row"><span class="cc-limit-label">Limit: $<input class="cc-limit-input" type="number" id="cap-lim" value="1000" min="1" oninput="recalcDebt()" /></span></div>
+      <div class="cc-limit-row"><span class="cc-limit-label">Limit: $<input class="cc-limit-input" type="number" onclick="event.stopPropagation()" id="cap-lim" value="1000" min="1" oninput="recalcDebt()" /></span></div>
     </div>
 
     <div class="sum-card" style="position:relative;overflow:hidden;" onclick="openModal('hd')">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#6c8ef5;border-radius:12px 12px 0 0;"></div>
       <div class="sum-label">Home Depot</div>
       <div class="sum-value" style="color:#6c8ef5;display:flex;align-items:baseline;gap:2px;">
-        <span>$</span><input class="cc-balance-input" type="number" id="hd-bal" value="0" min="0" step="1" oninput="recalcDebt()" style="color:#6c8ef5;" />
+        <span>$</span><input class="cc-balance-input" type="number" onclick="event.stopPropagation()" id="hd-bal" value="0" min="0" step="1" oninput="recalcDebt()" style="color:#6c8ef5;" />
       </div>
-      <div class="cc-limit-row"><span class="cc-limit-label">Limit: $<input class="cc-limit-input" type="number" id="hd-lim" value="2000" min="1" oninput="recalcDebt()" /></span></div>
+      <div class="cc-limit-row"><span class="cc-limit-label">Limit: $<input class="cc-limit-input" type="number" onclick="event.stopPropagation()" id="hd-lim" value="2000" min="1" oninput="recalcDebt()" /></span></div>
     </div>
 
     <div class="sum-card" style="position:relative;overflow:hidden;" onclick="openModal('loan')">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#e07b39;border-radius:12px 12px 0 0;"></div>
       <div class="sum-label">Loan</div>
       <div class="sum-value" style="color:#e07b39;display:flex;align-items:baseline;gap:2px;">
-        <span>$</span><input class="cc-balance-input" type="number" id="loan-bal" value="0" min="0" step="1" oninput="recalcDebt()" style="color:#e07b39;" />
+        <span>$</span><input class="cc-balance-input" type="number" onclick="event.stopPropagation()" id="loan-bal" value="0" min="0" step="1" oninput="recalcDebt()" style="color:#e07b39;" />
       </div>
-      <div class="cc-limit-row"><span class="cc-limit-label">Total: $<input class="cc-limit-input" type="number" id="loan-lim" value="5000" min="1" oninput="recalcDebt()" /></span></div>
+      <div class="cc-limit-row"><span class="cc-limit-label">Total: $<input class="cc-limit-input" type="number" onclick="event.stopPropagation()" id="loan-lim" value="5000" min="1" oninput="recalcDebt()" /></span></div>
     </div>
 
     <div class="sum-card" style="position:relative;overflow:hidden;cursor:pointer;" onclick="openTransUnionModal()">
@@ -2319,7 +2321,7 @@ function openModal(type) {
     }
 
     html += '<div class="modal-tip">' + (isLoan ? (pct >= 80 ? '🎉 Almost there! Keep making payments.' : '📋 Keep chipping away at this loan.') : (pct > 70 ? '⚠️ High utilization hurts your credit score.' : pct > 30 ? '⚡ Getting close to 30% utilization.' : '✅ Good utilization — keep it under 30%.')) + '</div>';
-    html += '<script>document.getElementById("cc-txn-date").valueAsDate = new Date();<\/script>';
+    // date set via setModalDates()
   }
 
   else if (type === 'wfc' || type === 'wfs' || type === 'nsb') {
@@ -2376,7 +2378,7 @@ function openModal(type) {
     }
 
     // Set today's date as default
-    html += '<script>document.getElementById("txn-date").valueAsDate = new Date();<\/script>';
+    // date set via setModalDates()
   }
 
   document.getElementById('modalTitle').textContent   = title;
@@ -2384,6 +2386,15 @@ function openModal(type) {
   document.getElementById('modalBody').innerHTML       = html;
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Set today's date on any date inputs in modal after render
+  setTimeout(function() {
+    var today = new Date().toISOString().split('T')[0];
+    ['txn-date','cc-txn-date'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = today;
+    });
+  }, 50);
 }
 
 // ── Bank Transactions ─────────────────────────────────────────
@@ -2470,6 +2481,8 @@ function deleteCCTxn(cardId, id) {
   openModal(cardId);
   showToast('Transaction removed');
 }
+
+function closeModal(e) {
   if (e.target === document.getElementById('modalOverlay')) closeModalNow();
 }
 
