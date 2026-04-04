@@ -1367,6 +1367,27 @@
       <span></span>
     </div>
     <div id="stock-rows"></div>
+
+    <!-- Charts section -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
+
+      <!-- Pie Chart — Portfolio Allocation -->
+      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;padding:16px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Portfolio Allocation</div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <canvas id="pieChart" width="120" height="120" style="flex-shrink:0;"></canvas>
+          <div id="pieLegend" style="display:flex;flex-direction:column;gap:6px;font-size:11px;font-family:'DM Mono',monospace;"></div>
+        </div>
+      </div>
+
+      <!-- Line Chart — 30-Day Portfolio Value -->
+      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:10px;padding:16px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">30-Day Portfolio Value</div>
+        <canvas id="lineChart" width="100%" height="120" style="width:100%;display:block;"></canvas>
+        <div id="lineChartMsg" style="text-align:center;color:var(--muted);font-size:12px;margin-top:8px;display:none;">Add stocks and refresh prices to see chart</div>
+      </div>
+
+    </div>
   </div>
 
   <!-- AI Money Coach Panel -->
@@ -3243,12 +3264,15 @@ function updateStockPL(id){
 }
 function updatePortfolioTotals(){
   var tc=0,tm=0,tpl=0;
+  var holdings=[];
   document.getElementById('stock-rows').querySelectorAll('[id^="stk"]').forEach(function(div){
     var ticker=div.querySelector('.stock-input').value.trim().toUpperCase();
     var nums=div.querySelectorAll('.stock-num');
     var shares=parseFloat(nums[0]?.value)||0, cost=parseFloat(nums[1]?.value)||0;
     var price=stockPrices[ticker]||0, p30=stock30Day[ticker]||price;
-    tc+=cost*shares; tm+=price*shares; tpl+=(price-p30)*shares;
+    var mv=price*shares;
+    tc+=cost*shares; tm+=mv; tpl+=(price-p30)*shares;
+    if(ticker&&mv>0) holdings.push({ticker:ticker,value:mv});
   });
   document.getElementById('costBasis').textContent='$'+tc.toLocaleString('en-US',{minimumFractionDigits:2});
   document.getElementById('marketValue').textContent='$'+tm.toLocaleString('en-US',{minimumFractionDigits:2});
@@ -3256,6 +3280,165 @@ function updatePortfolioTotals(){
   pe.textContent=(tpl>=0?'+':'')+' $'+Math.abs(tpl).toLocaleString('en-US',{minimumFractionDigits:2});
   pe.style.color=tpl>=0?'var(--income-col)':'var(--expense-col)';
   document.getElementById('portfolioTotal').textContent='$'+tm.toLocaleString('en-US',{minimumFractionDigits:2});
+
+  // Draw charts
+  drawPieChart(holdings, tm);
+  drawLineChart();
+}
+
+// ── Charts ────────────────────────────────────────────────────
+var CHART_COLORS = ['#3dd6a3','#f0a500','#6c8ef5','#e05252','#b97cf7','#e07b39','#d4a843','#c0392b','#3498db','#2ecc71'];
+
+function drawPieChart(holdings, total) {
+  var canvas = document.getElementById('pieChart');
+  var legend = document.getElementById('pieLegend');
+  if (!canvas || !legend) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  legend.innerHTML = '';
+
+  if (!holdings || holdings.length === 0 || total === 0) {
+    ctx.fillStyle = '#2a2e2e';
+    ctx.beginPath();
+    ctx.arc(W/2, H/2, W/2-4, 0, Math.PI*2);
+    ctx.fill();
+    legend.innerHTML = '<span style="color:var(--muted);">No holdings yet</span>';
+    return;
+  }
+
+  var startAngle = -Math.PI / 2;
+  holdings.forEach(function(h, i) {
+    var slice = (h.value / total) * Math.PI * 2;
+    var color = CHART_COLORS[i % CHART_COLORS.length];
+
+    // Draw slice
+    ctx.beginPath();
+    ctx.moveTo(W/2, H/2);
+    ctx.arc(W/2, H/2, W/2-4, startAngle, startAngle + slice);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#0e0f0f';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Legend
+    var pct = Math.round((h.value/total)*100);
+    legend.innerHTML += '<div style="display:flex;align-items:center;gap:6px;">' +
+      '<span style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0;display:inline-block;"></span>' +
+      '<span style="color:var(--text);">'+h.ticker+'</span>' +
+      '<span style="color:var(--muted);">'+pct+'%</span>' +
+    '</div>';
+
+    startAngle += slice;
+  });
+
+  // Center hole (donut)
+  ctx.beginPath();
+  ctx.arc(W/2, H/2, W/4, 0, Math.PI*2);
+  ctx.fillStyle = '#1c1f1f';
+  ctx.fill();
+}
+
+function drawLineChart() {
+  var canvas = document.getElementById('lineChart');
+  var msg    = document.getElementById('lineChartMsg');
+  if (!canvas) return;
+
+  // Build 30-day history from stock30Day prices + current prices
+  var tickers = [];
+  document.getElementById('stock-rows').querySelectorAll('[id^="stk"]').forEach(function(div) {
+    var t = div.querySelector('.stock-input').value.trim().toUpperCase();
+    var nums = div.querySelectorAll('.stock-num');
+    var shares = parseFloat(nums[0]?.value)||0;
+    if (t && shares > 0) tickers.push({ ticker: t, shares: shares });
+  });
+
+  if (tickers.length === 0) {
+    if (msg) msg.style.display = 'block';
+    return;
+  }
+  if (msg) msg.style.display = 'none';
+
+  // Build data points: day 0 = 30 days ago, day 30 = today
+  // We use stock30Day[ticker] as start price and stockPrices[ticker] as end
+  // Interpolate linearly between them for a smooth line
+  var points = [];
+  for (var d = 0; d <= 30; d++) {
+    var val = 0;
+    tickers.forEach(function(h) {
+      var p0 = stock30Day[h.ticker] || stockPrices[h.ticker] || 0;
+      var p1 = stockPrices[h.ticker] || 0;
+      var price = p0 + (p1 - p0) * (d / 30);
+      val += price * h.shares;
+    });
+    points.push(val);
+  }
+
+  // Draw
+  var ctx = canvas.getContext('2d');
+  var W = canvas.offsetWidth || 300;
+  var H = 120;
+  canvas.width = W;
+  canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+
+  var minV = Math.min.apply(null, points);
+  var maxV = Math.max.apply(null, points);
+  var range = maxV - minV || 1;
+  var pad = 16;
+
+  // Grid lines
+  ctx.strokeStyle = '#2a2e2e';
+  ctx.lineWidth = 1;
+  for (var g = 0; g <= 4; g++) {
+    var y = pad + (H - pad*2) * (g/4);
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  // Gradient fill
+  var isPositive = points[points.length-1] >= points[0];
+  var lineColor  = isPositive ? '#3dd6a3' : '#e05252';
+  var grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, isPositive ? 'rgba(61,214,163,0.3)' : 'rgba(224,82,82,0.3)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+  ctx.beginPath();
+  points.forEach(function(v, i) {
+    var x = (i / (points.length-1)) * W;
+    var y = pad + (H - pad*2) * (1 - (v - minV) / range);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  // Close fill
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = 2;
+  points.forEach(function(v, i) {
+    var x = (i / (points.length-1)) * W;
+    var y = pad + (H - pad*2) * (1 - (v - minV) / range);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Start / end labels
+  ctx.fillStyle = '#7a8282';
+  ctx.font = '10px DM Mono, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('30d ago', 4, H-4);
+  ctx.textAlign = 'right';
+  ctx.fillText('Today', W-4, H-4);
+
+  // Current value label
+  var lastY = pad + (H - pad*2) * (1 - (points[points.length-1] - minV) / range);
+  ctx.fillStyle = lineColor;
+  ctx.font = 'bold 11px DM Mono, monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('$' + points[points.length-1].toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}), W-4, Math.max(lastY-4, 12));
 }
 function refreshPrices(){
   var key=getFinnhubKey();
